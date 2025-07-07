@@ -18,7 +18,7 @@ DATA_PATH = os.path.join(ROOT_PATH, 'data', 'KDD19_data.json')
 
 # --- openai ---
 API_KEY = os.getenv("API_KEY")
-API_BASE = 'https://api.openai.com/v1'
+API_BASE = 'https://api.deepseek.com/v1'
 
 TEMPERATURE = 0.7
 MODEL_NAME = 'deepseek-chat'
