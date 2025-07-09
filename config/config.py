@@ -1,8 +1,9 @@
 import os
+from dotenv import load_dotenv
 from pathlib import Path
 
 
-def get_project_root(search_file='.git'):
+def get_project_root(search_file=".git"):
     current_path = Path(__file__).resolve()
 
     for parent in current_path.parents:
@@ -12,11 +13,12 @@ def get_project_root(search_file='.git'):
 
 
 ROOT_PATH = get_project_root()
-DATA_PATH = os.path.join(ROOT_PATH, 'data', 'KDD19_data.json')
+DATA_PATH = os.path.join(ROOT_PATH, "data", "modified_data.json")
 
 # --- openai ---
-API_KEY = ''
-API_BASE = 'https://api.openai.com/v1'
+API_KEY = os.getenv("API_KEY")
+API_BASE = "https://api.deepseek.com/v1"
 
 TEMPERATURE = 0.7
-MODEL_NAME = 'gpt-4o-mini'
+MODEL_NAME = "deepseek-chat"
+print(API_KEY)
