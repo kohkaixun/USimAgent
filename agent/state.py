@@ -36,24 +36,33 @@ class Init(StateBase):
         self.task.step = -1
 
     def exec(self):
-        return Search(self.task)
+        return Guide(self.task)
 
 
 class Guide(StateBase):
     def __init__(self, task, guide=None):
         super().__init__(task, guide)
+        self.prompt_variables = {
+            "task_description": task_description[self.task.task_id]
+        }
 
     def enter(self):
         pass
 
     def exec(self):
         # TODO: Need to query LLM to get the guiding questions, and set the guiding questions here
-        return Search(self.task, self.guide)
+        agent = Agent(prompt=StateBase.read_prompt("guide"), **self.prompt_variables)
+        guiding_questions = agent.generate()["guide"]
+        print("These are the guiding questions: ")
+        for i in guiding_questions:
+            print(i)
+        return Search(self.task, prompt=None, guide=self.guide)
 
 
 class Search(StateBase):
-    def __init__(self, task, guide=None):
+    def __init__(self, task, prompt=None, guide=None):
         super().__init__(task, guide)
+        self.prompt = prompt
         self.model = None
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
@@ -93,18 +102,6 @@ class Search(StateBase):
         return Stop(self.task)
 
 
-# class Respond(StateBase):
-#     def enter(self):
-#         pass
-#     def __init__(self, task):
-#         super().__init__(task)
-#         self.model = None
-#         self.prompt_variables = {
-#         }
-#     def exec(self):
-#         responder = Responder()
-
-
 class Stop(StateBase):
     def __init__(self, task, guide=None):
         super().__init__(task, guide)
@@ -121,7 +118,7 @@ class Stop(StateBase):
         agent = Agent(prompt=StateBase.read_prompt("stop"), **self.prompt_variables)
         results = agent.generate()
 
-        if "结束会话" in results["action"]:
+        if "Terminate" in results["action"]:
             return Finish(self.task)
         else:
             return Search(self.task)

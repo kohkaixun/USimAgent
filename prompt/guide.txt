@@ -4,12 +4,6 @@ You have an objective and should come up with some topics or guiding questions t
 objective：
 {task_description}
 
-search history：
-{history}
-
-thought and reasoning：
-{thought}
-
 task：
 Please provide a list of at least 4 and at most 6 questions that would serve as guiding questions that when answered, can help you advance in your objective or at least advance your understanding of the topic. 
 
