@@ -15,8 +15,8 @@ class Task:
         action = self.real_task[step]
 
         if "thought" in action:
-            history += f'[思考] {action["thought"]}\n'
-        history += f'[搜索] {action["query"]}\n'
+            history += f'[thought] {action["thought"]}\n'
+        history += f'[search] {action["query"]}\n'
         return history
 
     def get_history_gq(self, step):
@@ -26,7 +26,7 @@ class Task:
             history += self.get_history_query(s)
 
         if history == "":
-            history = "无搜索历史，本次为首次搜索\n"
+            history = "No previous queries, this is the first query.\n"
         return history
 
     def get_history_gc(self, step):
@@ -38,7 +38,7 @@ class Task:
         history += self.get_history_query(step)
 
         if history == "":
-            history = "无搜索历史，本次为首次搜索\n"
+            history = "No previous queries, this is the first query.\n"
         return history
 
     def get_history_sc(self, step):
@@ -50,7 +50,7 @@ class Task:
         history += self.get_history_query(step)
 
         if history == "":
-            history = "无搜索历史，本次为首次搜索\n"
+            history = "No previous queries, this is the first query.\n"
         return history
 
     def run(self):
