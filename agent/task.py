@@ -24,7 +24,6 @@ class Task:
 
         for s in range(step):
             history += self.get_history_query(s)
-            history += self.get_history_click(s)
 
         if history == "":
             history = "无搜索历史，本次为首次搜索\n"
@@ -35,7 +34,6 @@ class Task:
 
         for s in range(step):
             history += self.get_history_query(s)
-            history += self.get_history_click(s)
 
         history += self.get_history_query(step)
 
@@ -48,10 +46,8 @@ class Task:
 
         for s in range(step):
             history += self.get_history_query(s)
-            history += self.get_history_click(s)
 
         history += self.get_history_query(step)
-        history += self.get_history_click(step)
 
         if history == "":
             history = "无搜索历史，本次为首次搜索\n"

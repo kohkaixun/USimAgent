@@ -28,3 +28,4 @@ class Responder:
         print("Prompt to RAG: \n" + self.prompt)
         print("=======================")
         print("Response from RAG: \n" + result)
+        return result

@@ -1,20 +1,20 @@
-角色：
-你是一位搜索引擎用户，需要与搜索引擎互动以收集和回答问题的相关信息。
+role：
+You are a user who needs to interact with a RAG system to gather information and answer relevant questions for your task.
 
-目标：
+objective：
 {task_description}
 
-搜索历史：
+search history：
 {history}
 
-思考与推理：
+thought and reasoning：
 {thought}
 
-任务：
-请给出搜索查询词。
+task：
+Please provide a search query
 
-响应格式：
-请遵循JSON格式填写{{}}中的内容。
+response format：
+Please fill in the content in {{}} according to the JSON format
 {{
-    "query": "{{查询词}}"
+    "query": "{{search query}}"
 }}

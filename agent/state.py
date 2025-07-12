@@ -6,8 +6,9 @@ from agent.responder import *
 
 
 class StateBase(ABC):
-    def __init__(self, task):
+    def __init__(self, task, guide=None):
         self.task = task
+        self.guide = None
 
     @abstractmethod
     def enter(self):
@@ -28,8 +29,8 @@ class StateBase(ABC):
 
 
 class Init(StateBase):
-    def __init__(self, task):
-        super().__init__(task)
+    def __init__(self, task, guide=None):
+        super().__init__(task, guide)
 
     def enter(self):
         self.task.step = -1
@@ -38,9 +39,21 @@ class Init(StateBase):
         return Search(self.task)
 
 
+class Guide(StateBase):
+    def __init__(self, task, guide=None):
+        super().__init__(task, guide)
+
+    def enter(self):
+        pass
+
+    def exec(self):
+        # TODO: Need to query LLM to get the guiding questions, and set the guiding questions here
+        return Search(self.task, self.guide)
+
+
 class Search(StateBase):
-    def __init__(self, task):
-        super().__init__(task)
+    def __init__(self, task, guide=None):
+        super().__init__(task, guide)
         self.model = None
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
@@ -93,8 +106,8 @@ class Search(StateBase):
 
 
 class Stop(StateBase):
-    def __init__(self, task):
-        super().__init__(task)
+    def __init__(self, task, guide=None):
+        super().__init__(task, guide)
         self.model = None
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
@@ -115,8 +128,8 @@ class Stop(StateBase):
 
 
 class Finish(StateBase):
-    def __init__(self, task):
-        super().__init__(task)
+    def __init__(self, task, guide=None):
+        super().__init__(task, guide)
 
     def enter(self):
         pass

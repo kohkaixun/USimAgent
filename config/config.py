@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 from pathlib import Path
 
+load_dotenv()
+
 
 def get_project_root(search_file=".git"):
     current_path = Path(__file__).resolve()
@@ -21,4 +23,3 @@ API_BASE = "https://api.deepseek.com/v1"
 
 TEMPERATURE = 0.7
 MODEL_NAME = "deepseek-chat"
-print(API_KEY)
