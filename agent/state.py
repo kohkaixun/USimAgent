@@ -60,6 +60,12 @@ class Search(StateBase):
         agent = Agent(prompt=StateBase.read_prompt("query"), thought=thought, **self.prompt_variables)
         query = agent.generate()['query']
 
+        # TODO: Send user simulated query to RAG agent and get response
+        if 'history' in self.prompt_variables:
+            print("\n\n\n\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+            print(self.prompt_variables['history'])
+            print("\n\n\n\n^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+
         self.task.generate_task.append({
             'step': self.task.step,
             'query': query,
@@ -68,34 +74,63 @@ class Search(StateBase):
             'real_thought': self.task.real_task[self.task.step]['thought'],
         })
 
-        return Click(self.task)
-
-
-class Click(StateBase):
-    def __init__(self, task):
-        super().__init__(task)
-        self.model = None
-        self.prompt_variables = {
-            "task_description": task_description[self.task.task_id],
-            "history": self.task.get_history_gc(self.task.step).strip(),
-            "thought": self.task.real_task[self.task.step]["thought"],
-            "query": self.task.real_task[self.task.step]["query"],
-            "serp": self.task.get_serp(self.task.step).strip(),
-        }
-
-    def enter(self):
-        pass
-
-    def exec(self):
-        agent = Agent(prompt=StateBase.read_prompt("click"), **self.prompt_variables)
-        results = agent.generate()
-
-        self.task.generate_task[self.task.step].update({
-            'clicks': results['clicks'],
-            'real_clicks': [rank for rank, result in enumerate(self.task.real_task[self.task.step]['SERP']) if result['click'] == 1],
-        })
-
         return Stop(self.task)
+        # return RAGResponse(self.task)
+
+# class RAGResponse(StateBase):
+#     def __init__(self, task):
+#         super().__init__(task)
+#         self.model = None
+#         self.prompt_variables = {
+#             "task_description": task_description[self.task.task_id],
+#             "history": self.task.get_history_gc(self.task.step).strip(),
+#             "thought": self.task.real_task[self.task.step]["thought"],
+#             "query": self.task.real_task[self.task.step]["query"],
+#             # "conversation": self.task.get_conversation(self.task.step).strip(),
+#         }
+
+#     def enter(self):
+#         pass
+    
+#     def exec(self):
+#         agent = Agent(prompt=StateBase.read_prompt("response"), **self.prompt_variables)
+#         results = agent.generate()
+#         print(results)
+
+#         self.task.generate_task[self.task.step].update({
+#             'clicks': results['clicks'],
+#             'real_clicks': [rank for rank, result in enumerate(self.task.real_task[self.task.step]['SERP']) if result['click'] == 1],
+#         })
+
+#         # self.task.generate_task[self.task.step]['conversation'].append(result)
+
+#         return Stop(self.task)
+
+# class Click(StateBase):
+#     def __init__(self, task):
+#         super().__init__(task)
+#         self.model = None
+#         self.prompt_variables = {
+#             "task_description": task_description[self.task.task_id],
+#             "history": self.task.get_history_gc(self.task.step).strip(),
+#             "thought": self.task.real_task[self.task.step]["thought"],
+#             "query": self.task.real_task[self.task.step]["query"],
+#             "serp": self.task.get_serp(self.task.step).strip(),
+#         }
+
+#     def enter(self):
+#         pass
+
+#     def exec(self):
+#         agent = Agent(prompt=StateBase.read_prompt("click"), **self.prompt_variables)
+#         results = agent.generate()
+
+#         self.task.generate_task[self.task.step].update({
+#             'clicks': results['clicks'],
+#             'real_clicks': [rank for rank, result in enumerate(self.task.real_task[self.task.step]['SERP']) if result['click'] == 1],
+#         })
+
+#         return Stop(self.task)
 
 
 class Stop(StateBase):
@@ -105,7 +140,7 @@ class Stop(StateBase):
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
             "history": self.task.get_history_sc(self.task.step).strip(),
-            "serp": self.task.get_serp(self.task.step).strip(),
+            # "serp": self.task.get_serp(self.task.step).strip(),
         }
 
     def enter(self):
