@@ -6,9 +6,10 @@ from agent.responder import *
 
 
 class StateBase(ABC):
-    def __init__(self, task, guide=None):
+    def __init__(self, task, guide=None, conversation=None):
         self.task = task
-        self.guide = None
+        self.guide = guide
+        self.conversation = conversation
 
     @abstractmethod
     def enter(self):
@@ -30,7 +31,7 @@ class StateBase(ABC):
 
 class Init(StateBase):
     def __init__(self, task, guide=None):
-        super().__init__(task, guide)
+        super().__init__(task)
 
     def enter(self):
         self.task.step = -1
@@ -41,7 +42,7 @@ class Init(StateBase):
 
 class Guide(StateBase):
     def __init__(self, task, guide=None):
-        super().__init__(task, guide)
+        super().__init__(task)
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id]
         }
@@ -53,20 +54,22 @@ class Guide(StateBase):
         # TODO: Need to query LLM to get the guiding questions, and set the guiding questions here
         agent = Agent(prompt=StateBase.read_prompt("guide"), **self.prompt_variables)
         guiding_questions = agent.generate()["guide"]
+        self.guide = guiding_questions
         print("These are the guiding questions: ")
         for i in guiding_questions:
             print(i)
-        return Search(self.task, prompt=None, guide=self.guide)
+        return Search(self.task, query=None, guide=self.guide)
 
 
 class Search(StateBase):
-    def __init__(self, task, prompt=None, guide=None):
+    def __init__(self, task, query=None, guide=None, history=None):
         super().__init__(task, guide)
-        self.prompt = prompt
+        self.query = query
         self.model = None
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
-            "history": self.task.get_history_gq(self.task.step).strip(),
+            "history": history,
+            "guiding_questions": self.guide,
         }
 
     def enter(self):
@@ -85,10 +88,12 @@ class Search(StateBase):
             thought=thought,
             **self.prompt_variables,
         )
-        query = agent.generate()["query"]
+        query = agent.generate()["query"] if self.query is None else self.query
 
         responder = Responder(query)
         response = responder.generate()  # You may want to store this
+        query_response = {"query": query, "response": response}
+        self.history = self.history.append(query_response) if self.history is None else [query_response]
 
         self.task.generate_task.append(
             {
@@ -99,16 +104,17 @@ class Search(StateBase):
             }
         )
 
-        return Stop(self.task)
+        return Stop(self.task, self.guide, self.history)
 
 
 class Stop(StateBase):
-    def __init__(self, task, guide=None):
+    def __init__(self, task, guide=None, history = None):
         super().__init__(task, guide)
         self.model = None
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
-            "history": self.task.get_history_sc(self.task.step).strip(),
+            "history": history,
+            "guiding_questions": self.guide,
         }
 
     def enter(self):
@@ -121,7 +127,7 @@ class Stop(StateBase):
         if "Terminate" in results["action"]:
             return Finish(self.task)
         else:
-            return Search(self.task)
+            return Search(self.task, results["follow-up"], self.history)
 
 
 class Finish(StateBase):

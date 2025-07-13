@@ -29,17 +29,17 @@ class Task:
             history = "No previous queries, this is the first query.\n"
         return history
 
-    def get_history_gc(self, step):
-        history = ""
+    # def get_history_gc(self, step):
+    #     history = ""
 
-        for s in range(step):
-            history += self.get_history_query(s)
+    #     for s in range(step):
+    #         history += self.get_history_query(s)
 
-        history += self.get_history_query(step)
+    #     history += self.get_history_query(step)
 
-        if history == "":
-            history = "No previous queries, this is the first query.\n"
-        return history
+    #     if history == "":
+    #         history = "No previous queries, this is the first query.\n"
+    #     return history
 
     def get_history_sc(self, step):
         history = ""
