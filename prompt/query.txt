@@ -7,11 +7,11 @@ objective：
 search history：
 {history}
 
-thought and reasoning：
-{thought}
+guiding questions:
+{guiding_questions}
 
 task：
-Please provide a search query
+Please provide a search query related to one of the guiding questions only.
 
 response format：
 Please fill in the content in {{}} according to the JSON format

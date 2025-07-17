@@ -10,5 +10,5 @@ Please provide a list of at least 4 and at most 6 questions that would serve as 
 response format：
 Please fill in the content in {{}} according to the JSON format
 {{
-    "guide": "[guiding questions]"
+    "guiding_questions": "[guiding questions]"
 }}

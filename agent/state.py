@@ -6,9 +6,9 @@ from agent.responder import *
 
 
 class StateBase(ABC):
-    def __init__(self, task, guide=None, conversation=None):
+    def __init__(self, task, guiding_questions=None, conversation=None):
         self.task = task
-        self.guide = guide
+        self.guiding_questions = guiding_questions
         self.conversation = conversation
 
     @abstractmethod
@@ -30,7 +30,7 @@ class StateBase(ABC):
 
 
 class Init(StateBase):
-    def __init__(self, task, guide=None):
+    def __init__(self, task, guiding_questions=None):
         super().__init__(task)
 
     def enter(self):
@@ -41,7 +41,7 @@ class Init(StateBase):
 
 
 class Guide(StateBase):
-    def __init__(self, task, guide=None):
+    def __init__(self, task, guiding_questions=None):
         super().__init__(task)
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id]
@@ -53,24 +53,21 @@ class Guide(StateBase):
     def exec(self):
         # TODO: Need to query LLM to get the guiding questions, and set the guiding questions here
         agent = Agent(prompt=StateBase.read_prompt("guide"), **self.prompt_variables)
-        guiding_questions = agent.generate()["guide"]
-        self.guide = guiding_questions
-        print("These are the guiding questions: ")
-        for i in guiding_questions:
-            print(i)
-        return Search(self.task, query=None, guide=self.guide)
+        guiding_questions = agent.generate()["guiding_questions"]
+        self.guiding_questions = guiding_questions
+        return Search(self.task, query=None, guiding_questions=self.guiding_questions)
 
 
 class Search(StateBase):
-    def __init__(self, task, query=None, guide=None, history=None):
-        super().__init__(task, guide)
+    def __init__(self, task, query=None, guiding_questions=None, history=None):
+        super().__init__(task, guiding_questions)
         self.query = query
         self.model = None
         self.history = history
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
             "history": history,
-            "guiding_questions": self.guide,
+            "guiding_questions": self.guiding_questions,
         }
 
     def enter(self):
@@ -82,40 +79,45 @@ class Search(StateBase):
         return thought
 
     def exec(self):
-        thought = self.get_thought()
-
         agent = Agent(
             prompt=StateBase.read_prompt("query"),
-            thought=thought,
             **self.prompt_variables,
         )
-        query = agent.generate()["query"] if self.query is None else self.query
+
+        if self.query is None:
+            self.query = agent.generate()["query"]
+
+        query = self.query
 
         responder = Responder(query)
         response = responder.generate()  # You may want to store this
         query_response = {"query": query, "response": response}
-        self.history = [query_response] if self.history is None else self.history.append(query_response)
+        self.history = (
+            [query_response]
+            if self.history is None
+            else self.history.append(query_response)
+        )
 
         self.task.generate_task.append(
             {
                 "step": self.task.step,
                 "query": query,
-                "thought": thought,
                 "response": response,
             }
         )
 
-        return Stop(self.task, self.guide, self.history)
+        return Stop(self.task, self.guiding_questions, self.history)
 
 
 class Stop(StateBase):
-    def __init__(self, task, guide=None, history = None):
-        super().__init__(task, guide)
+    def __init__(self, task, guiding_questions=None, history=None):
+        super().__init__(task, guiding_questions)
         self.model = None
+        self.history = history
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
             "history": history,
-            "guiding_questions": self.guide,
+            "guiding_questions": self.guiding_questions,
         }
 
     def enter(self):
@@ -132,8 +134,8 @@ class Stop(StateBase):
 
 
 class Finish(StateBase):
-    def __init__(self, task, guide=None):
-        super().__init__(task, guide)
+    def __init__(self, task, guiding_questions=None):
+        super().__init__(task, guiding_questions)
 
     def enter(self):
         pass

@@ -15,7 +15,7 @@ def get_project_root(search_file=".git"):
 
 
 ROOT_PATH = get_project_root()
-DATA_PATH = os.path.join(ROOT_PATH, "data", "modified_data.json")
+DATA_PATH = os.path.join(ROOT_PATH, "data", "tasks.json")
 
 # --- openai ---
 API_KEY = os.getenv("API_KEY")

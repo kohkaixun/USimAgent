@@ -11,8 +11,8 @@ guiding questions:
 {guiding_questions}
 
 task：
-considering the guiding questions and the search history and responses so far, have ALL guiding questions been answered to a satisfactory level? Decide whether you should continue to ask another question for an elaboration of an unsatisfactory answer to a guiding question, or answer any of the unanswered guiding questions. Feel free to quote from previous responses if any details were not clear. 
-
+In response to the last query-response with the RAG LLM, follow up on anything that was unclear or come up with a new query using a guiding question that has not been addressed in the search history. If all guiding questions have been addressed, terminate the conversation.
+ 
 response format：
 Please respond in either of the 2 formats depending on whether you feel the conversation should continue or not
 {{
