@@ -66,6 +66,7 @@ class Search(StateBase):
         super().__init__(task, guide)
         self.query = query
         self.model = None
+        self.history = history
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
             "history": history,
@@ -93,7 +94,7 @@ class Search(StateBase):
         responder = Responder(query)
         response = responder.generate()  # You may want to store this
         query_response = {"query": query, "response": response}
-        self.history = self.history.append(query_response) if self.history is None else [query_response]
+        self.history = [query_response] if self.history is None else self.history.append(query_response)
 
         self.task.generate_task.append(
             {
