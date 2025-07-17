@@ -65,7 +65,7 @@ class Agent:
         except:
             result = Agent.normalize_json(result)
 
-            if 'click' in result:
+            if 'guide' in result:
                 result = result[:5] + result[5:-2].replace("{", "").replace("}", "") + result[-2:]
 
             result_json = json.loads(result)
