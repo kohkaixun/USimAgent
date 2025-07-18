@@ -6,10 +6,9 @@ from agent.responder import *
 
 
 class StateBase(ABC):
-    def __init__(self, task, guiding_questions=None, conversation=None):
+    def __init__(self, task, guiding_questions=None):
         self.task = task
         self.guiding_questions = guiding_questions
-        self.conversation = conversation
 
     @abstractmethod
     def enter(self):
@@ -55,7 +54,7 @@ class Guide(StateBase):
         agent = Agent(prompt=StateBase.read_prompt("guide"), **self.prompt_variables)
         guiding_questions = agent.generate()["guiding_questions"]
         self.guiding_questions = guiding_questions
-        return Search(self.task, query=None, guiding_questions=self.guiding_questions)
+        return Search(self.task, guiding_questions=self.guiding_questions)
 
 
 class Search(StateBase):
@@ -66,7 +65,7 @@ class Search(StateBase):
         self.history = history
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
-            "history": history,
+            "history": self.history,
             "guiding_questions": self.guiding_questions,
         }
 
@@ -92,11 +91,11 @@ class Search(StateBase):
         responder = Responder(query)
         response = responder.generate()  # You may want to store this
         query_response = {"query": query, "response": response}
-        self.history = (
-            [query_response]
-            if self.history is None
-            else self.history.append(query_response)
-        )
+
+        if self.history is None:
+            self.history = [query_response]
+        else:
+            self.history.append(query_response)
 
         self.task.generate_task.append(
             {
@@ -106,17 +105,18 @@ class Search(StateBase):
             }
         )
 
-        return Stop(self.task, self.guiding_questions, self.history)
+        return Stop(self.task, guiding_questions=self.guiding_questions, history=self.history)
 
 
 class Stop(StateBase):
     def __init__(self, task, guiding_questions=None, history=None):
         super().__init__(task, guiding_questions)
         self.model = None
+        self.guiding_questions = guiding_questions
         self.history = history
         self.prompt_variables = {
             "task_description": task_description[self.task.task_id],
-            "history": history,
+            "history": self.history,
             "guiding_questions": self.guiding_questions,
         }
 
@@ -130,7 +130,8 @@ class Stop(StateBase):
         if "Terminate" in results["action"]:
             return Finish(self.task)
         else:
-            return Search(self.task, results["follow-up"], self.history)
+            print(self.history)
+            return Search(self.task, query=results["follow-up"], guiding_questions=self.guiding_questions, history=self.history)
 
 
 class Finish(StateBase):
